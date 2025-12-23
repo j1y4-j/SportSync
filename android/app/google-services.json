@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "396347236702",
+    "project_id": "sports-sync-nitk",
+    "storage_bucket": "sports-sync-nitk.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:396347236702:android:cfeb53cde99a8f981d6fcf",
+        "android_client_info": {
+          "package_name": "com.example.sports_sync"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzdVSDJkgdMPj3aGufILnCGCKZE0FqR9I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
