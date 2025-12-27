@@ -1,0 +1,50 @@
+const admin = require("firebase-admin");
+const serviceAccount = require("./sports-sync-nitk-firebase-adminsdk-fbsvc-336de076fd.json"); // Your admin key
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+const db = admin.firestore();
+
+async function restoreUsers() {
+  let nextPageToken;
+  do {
+    const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
+    const users = listUsersResult.users;
+
+    for (const user of users) {
+      const userRef = db.collection("users").doc(user.uid);
+      const doc = await userRef.get();
+
+      // If user doc doesn't exist, create it
+      if (!doc.exists) {
+        await userRef.set({
+          name: user.displayName || "",
+          email: user.email || "",
+          totalBookings: 0,
+          trustScore: 100,
+          credibility: 100,
+          borrowerScore: 100,
+          noShows: 0,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          friends: [], // if you added friends field
+        });
+        console.log("Created user:", user.uid);
+      } else {
+        // Optionally update totalBookings if you have data
+        await userRef.update({
+          totalBookings: doc.data().totalBookings || 0,
+        });
+        console.log("Updated user:", user.uid);
+      }
+    }
+
+    nextPageToken = listUsersResult.pageToken;
+  } while (nextPageToken);
+}
+
+restoreUsers().then(() => {
+  console.log("All users restored.");
+  process.exit(0);
+});

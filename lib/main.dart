@@ -3,13 +3,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; // ✅ must import
 // import '../services/login.dart'; // path to your login screen
 import 'auth_wrapper.dart';
+
+// import 'admin/addFriends.dart';
 // import 'admin/migrate_bookedby.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // await migrateBookedBy();
+
   runApp(const MyApp());
 }
 
