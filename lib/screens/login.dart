@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../screens/homepage.dart';
+import 'homepage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 30),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue, Colors.lightBlueAccent],
+            colors: [Color.fromARGB(255, 26, 118, 194), Colors.lightBlueAccent],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'play_screen.dart';
 import 'book_screen.dart';
-import 'discover_screen.dart';
 import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -16,8 +15,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = const [
     PlayScreen(),
-    BookScreen(),
-    DiscoverScreen(),
+    MyBookingsScreen(),
     ProfileScreen(),
   ];
 
@@ -25,11 +23,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-        },
+        onTap: (index) => setState(() => _currentIndex = index),
+
+        // ✅ FORCE COLORS
+        backgroundColor: Colors.blue, // Blue background
+        selectedItemColor: Colors.white, // White for selected icon & text
+        unselectedItemColor:
+            Colors.white70, // Slightly transparent for unselected
+        type: BottomNavigationBarType.fixed,
+
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.sports_tennis),
@@ -37,16 +42,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
-            label: 'Book',
+            label: 'My Bookings',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Discover',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
