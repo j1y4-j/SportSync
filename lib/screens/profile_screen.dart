@@ -48,6 +48,14 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
 
+                const SizedBox(height: 10),
+
+                /// USER ROLL NUMBER
+                Text(
+                  "Roll Number: ${data['rollNumber'] ?? 'NA'}",
+                  style: const TextStyle(fontSize: 16),
+                ),
+
                 const SizedBox(height: 20),
 
                 /// SCORES

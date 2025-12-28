@@ -10,10 +10,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final AuthService _authService = AuthService();
+
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController rollController = TextEditingController();
+
   bool isLogin = true;
-  final AuthService _authService = AuthService();
+  bool loading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +44,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 50),
+
+                // Email field
                 TextField(
                   controller: emailController,
                   decoration: InputDecoration(
@@ -53,6 +59,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 20),
+
+                // Password field
                 TextField(
                   controller: passwordController,
                   decoration: InputDecoration(
@@ -65,36 +73,64 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   obscureText: true,
                 ),
+
+                // Roll Number field (only for Sign Up)
+                if (!isLogin) ...[
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: rollController,
+                    decoration: InputDecoration(
+                      labelText: 'Roll Number',
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.9),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 30),
+
+                // Login/Signup button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        if (isLogin) {
-                          await _authService.login(
-                            emailController.text,
-                            passwordController.text,
-                          );
-                        } else {
-                          await _authService.register(
-                            emailController.text,
-                            passwordController.text,
-                          );
-                        }
+                    onPressed: loading
+                        ? null
+                        : () async {
+                            setState(() => loading = true);
+                            try {
+                              if (isLogin) {
+                                await _authService.login(
+                                  emailController.text.trim(),
+                                  passwordController.text.trim(),
+                                );
+                              } else {
+                                await _authService.register(
+                                  emailController.text.trim(),
+                                  passwordController.text.trim(),
+                                  rollController.text.trim(),
+                                );
+                              }
 
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => HomeScreen(),
-                          ), // change to HomeScreen
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(e.toString())));
-                      }
-                    },
+                              // Navigate to HomeScreen after success
+                              if (context.mounted) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const HomeScreen(),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            } finally {
+                              setState(() => loading = false);
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
@@ -107,7 +143,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 15),
+
+                // Toggle Login/SignUp
                 TextButton(
                   onPressed: () => setState(() => isLogin = !isLogin),
                   child: Text(
@@ -117,6 +156,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
+
+                if (loading) const SizedBox(height: 20),
+                if (loading) const CircularProgressIndicator(),
               ],
             ),
           ),
