@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-import '../utils/cleanup.dart'; // 👈 where cleanupUserBookings lives
+import '../main.dart';
+import '../utils/cleanup.dart';
 import '../screens/login.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -16,144 +16,140 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Profile"),
-        backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            icon: Icon(
+              themeNotifier.value == ThemeMode.dark
+                  ? Icons.light_mode_outlined
+                  : Icons.dark_mode_outlined,
+            ),
+            onPressed: () {
+              themeNotifier.value = themeNotifier.value == ThemeMode.dark
+                  ? ThemeMode.light
+                  : ThemeMode.dark;
+            },
+          ),
+        ],
       ),
+
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
             .doc(userId)
             .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+        builder: (_, snapshot) {
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
-          }
-
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text("User data not found"));
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
 
-          return Padding(
+          return ListView(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// USER EMAIL
-                Text(
-                  user.email ?? "No email",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            children: [
+              /// USER INFO
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user.email ?? "",
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "Roll No: ${data['rollNumber'] ?? 'NA'}",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 10),
+              const SizedBox(height: 16),
 
-                /// USER ROLL NUMBER
-                Text(
-                  "Roll Number: ${data['rollNumber'] ?? 'NA'}",
-                  style: const TextStyle(fontSize: 16),
-                ),
+              _statTile("Trust Score", data['trustScore']),
+              _statTile("Credibility", data['credibility']),
+              _statTile("Borrower Score", data['borrowerScore']),
+              _statTile("Total Bookings", data['totalBookings']),
+              _statTile("No Shows", data['noShows']),
 
-                const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
-                /// SCORES
-                _scoreTile("Trust Score", data['trustScore']),
-                _scoreTile("Credibility", data['credibility']),
-                _scoreTile("Borrower Score", data['borrowerScore']),
-                _scoreTile("Total Bookings", data['totalBookings']),
-                _scoreTile("No Shows", data['noShows']),
-
-                const Spacer(),
-
-                /// LOGOUT
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      await FirebaseAuth.instance.signOut();
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        (_) => false,
-                      );
-                    },
-                    child: const Text("Logout"),
+              /// LOGOUT
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 18, // ⬅ increase height
+                    horizontal: 20, // ⬅ increase width
                   ),
-                ),
-
-                const SizedBox(height: 12),
-
-                /// DELETE ACCOUNT
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                    ),
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Delete Account"),
-                          content: const Text(
-                            "This will cancel all your bookings and permanently delete your account.",
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text("Cancel"),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text("Delete"),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      if (confirm != true) return;
-
-                      // ✅ CLEAN UP BOOKINGS
-                      await cleanupUserBookings(userId);
-
-                      // ✅ DELETE USER DOC
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(userId)
-                          .delete();
-
-                      // ✅ DELETE AUTH ACCOUNT
-                      await FirebaseAuth.instance.currentUser!.delete();
-
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        (_) => false,
-                      );
-                    },
-                    child: const Text("Delete Account"),
+                  textStyle: const TextStyle(
+                    fontSize: 17, // ⬅ text size
+                    fontWeight: FontWeight.w600,
                   ),
+                  minimumSize: const Size(
+                    double.infinity,
+                    56,
+                  ), // ⬅ fixed height
                 ),
-              ],
-            ),
+                icon: const Icon(Icons.logout),
+                label: const Text("Logout"),
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (_) => false,
+                  );
+                },
+              ),
+
+              const SizedBox(height: 12),
+
+              /// DELETE ACCOUNT
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 18,
+                    horizontal: 20,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  minimumSize: const Size(double.infinity, 56),
+                ),
+                icon: const Icon(Icons.delete_outline),
+                label: const Text("Delete Account"),
+                onPressed: () async {
+                  await cleanupUserBookings(userId);
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(userId)
+                      .delete();
+                  await FirebaseAuth.instance.currentUser!.delete();
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (_) => false,
+                  );
+                },
+              ),
+            ],
           );
         },
       ),
     );
   }
 
-  /// SMALL HELPER WIDGET
-  Widget _scoreTile(String title, dynamic value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-          Text(value?.toString() ?? "NA"),
-        ],
+  Widget _statTile(String title, dynamic value) {
+    return Card(
+      child: ListTile(
+        title: Text(title),
+        trailing: Text(value?.toString() ?? "0"),
       ),
     );
   }
