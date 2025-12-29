@@ -28,13 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
 
-        // ✅ FORCE COLORS
-        backgroundColor: Colors.blue, // Blue background
-        selectedItemColor: Colors.white, // White for selected icon & text
-        unselectedItemColor:
-            Colors.white70, // Slightly transparent for unselected
-        type: BottomNavigationBarType.fixed,
-
+        // Colors are automatically taken from ThemeData.bottomNavigationBarTheme
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.sports_tennis),

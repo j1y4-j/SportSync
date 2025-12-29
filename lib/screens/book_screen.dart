@@ -10,7 +10,10 @@ class MyBookingsScreen extends StatelessWidget {
     final userId = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("My Bookings")),
+      appBar: AppBar(
+        title: const Text("My Bookings"),
+        backgroundColor: const Color(0xFF27AE60),
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collectionGroup('slots').snapshots(),
         builder: (context, snapshot) {
@@ -19,7 +22,9 @@ class MyBookingsScreen extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("No bookings yet"));
+            return const Center(
+              child: Text("No bookings yet", style: TextStyle(fontSize: 16)),
+            );
           }
 
           // Filter slots booked by current user
@@ -32,10 +37,13 @@ class MyBookingsScreen extends StatelessWidget {
           }).toList();
 
           if (userSlots.isEmpty) {
-            return const Center(child: Text("No bookings yet"));
+            return const Center(
+              child: Text("No bookings yet", style: TextStyle(fontSize: 16)),
+            );
           }
 
           return ListView.builder(
+            padding: const EdgeInsets.all(12),
             itemCount: userSlots.length,
             itemBuilder: (context, index) {
               final slot = userSlots[index];
@@ -57,17 +65,48 @@ class MyBookingsScreen extends StatelessWidget {
                             'Court'
                       : 'Court';
 
-                  return Card(
-                    margin: const EdgeInsets.all(12),
+                  Color getStatusColor(String status) {
+                    switch (status) {
+                      case 'free':
+                        return const Color(0xFF27AE60);
+                      case 'booked':
+                        return const Color(0xFFF39C12);
+                      case 'inuse':
+                        return const Color(0xFFE74C3C);
+                      default:
+                        return Colors.grey;
+                    }
+                  }
+
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    decoration: BoxDecoration(
+                      color: getStatusColor(data['status']).withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 4,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
                     child: ListTile(
-                      title: Text(courtName),
+                      title: Text(
+                        courtName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       subtitle: Text(
                         "${data['startTime']} - ${data['endTime']} | ${data['status']} (${bookedUsers.length}/4)",
+                        style: const TextStyle(color: Colors.white70),
                       ),
                       trailing: IconButton(
-                        icon: const Icon(Icons.cancel, color: Colors.red),
+                        icon: const Icon(Icons.cancel, color: Colors.white),
                         onPressed: () async {
-                          // Confirmation dialog
                           final confirm = await showDialog<bool>(
                             context: context,
                             builder: (context) => AlertDialog(
@@ -91,25 +130,20 @@ class MyBookingsScreen extends StatelessWidget {
 
                           if (confirm != true) return;
 
-                          // Remove current user from bookedBy
                           bookedUsers.remove(userId);
 
-                          // Decide new slot status
                           String newStatus;
                           if (bookedUsers.isEmpty) {
                             newStatus = 'free';
                           } else {
-                            newStatus =
-                                'booked'; // still booked if others remain
+                            newStatus = 'booked';
                           }
 
-                          // Update slot in Firestore
                           await slot.reference.update({
                             'bookedBy': bookedUsers,
                             'status': newStatus,
                           });
 
-                          // Decrement user's total bookings
                           await FirebaseFirestore.instance
                               .collection('users')
                               .doc(userId)

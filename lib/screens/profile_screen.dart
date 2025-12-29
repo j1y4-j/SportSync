@@ -20,8 +20,8 @@ class ProfileScreen extends StatelessWidget {
           IconButton(
             icon: Icon(
               themeNotifier.value == ThemeMode.dark
-                  ? Icons.light_mode_outlined
-                  : Icons.dark_mode_outlined,
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
             ),
             onPressed: () {
               themeNotifier.value = themeNotifier.value == ThemeMode.dark
@@ -31,125 +31,201 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
             .doc(userId)
             .snapshots(),
-        builder: (_, snapshot) {
-          if (!snapshot.hasData) {
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text("User data not found"));
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
 
-          return ListView(
+          return Container(
             padding: const EdgeInsets.all(16),
-            children: [
-              /// USER INFO
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                /// User Info Card
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardTheme.color,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        user.email ?? "",
-                        style: Theme.of(context).textTheme.titleLarge,
+                        user.email ?? "No email",
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2ECC71),
+                        ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       Text(
-                        "Roll No: ${data['rollNumber'] ?? 'NA'}",
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        "Roll Number: ${data['rollNumber'] ?? 'NA'}",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
-              _statTile("Trust Score", data['trustScore']),
-              _statTile("Credibility", data['credibility']),
-              _statTile("Borrower Score", data['borrowerScore']),
-              _statTile("Total Bookings", data['totalBookings']),
-              _statTile("No Shows", data['noShows']),
-
-              const SizedBox(height: 24),
-
-              /// LOGOUT
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 18, // ⬅ increase height
-                    horizontal: 20, // ⬅ increase width
-                  ),
-                  textStyle: const TextStyle(
-                    fontSize: 17, // ⬅ text size
-                    fontWeight: FontWeight.w600,
-                  ),
-                  minimumSize: const Size(
-                    double.infinity,
-                    56,
-                  ), // ⬅ fixed height
+                /// Scores
+                _scoreCard(
+                  "Trust Score",
+                  data['trustScore'],
+                  Icons.shield,
+                  context,
                 ),
-                icon: const Icon(Icons.logout),
-                label: const Text("Logout"),
-                onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    (_) => false,
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              /// DELETE ACCOUNT
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 18,
-                    horizontal: 20,
-                  ),
-                  textStyle: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  minimumSize: const Size(double.infinity, 56),
+                _scoreCard(
+                  "Credibility",
+                  data['credibility'],
+                  Icons.star,
+                  context,
                 ),
-                icon: const Icon(Icons.delete_outline),
-                label: const Text("Delete Account"),
-                onPressed: () async {
-                  await cleanupUserBookings(userId);
-                  await FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(userId)
-                      .delete();
-                  await FirebaseAuth.instance.currentUser!.delete();
+                _scoreCard(
+                  "Borrower Score",
+                  data['borrowerScore'],
+                  Icons.account_balance,
+                  context,
+                ),
+                _scoreCard(
+                  "Total Bookings",
+                  data['totalBookings'],
+                  Icons.book_online,
+                  context,
+                ),
+                _scoreCard(
+                  "No Shows",
+                  data['noShows'],
+                  Icons.cancel_outlined,
+                  context,
+                ),
 
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    (_) => false,
-                  );
-                },
-              ),
-            ],
+                const Spacer(),
+
+                /// Logout Button
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (_) => false,
+                    );
+                  },
+                  icon: const Icon(Icons.logout),
+                  label: const Text("Logout"),
+                ),
+
+                const SizedBox(height: 12),
+
+                /// Delete Account Button
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                  ),
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text("Delete Account"),
+                        content: const Text(
+                          "This will cancel all your bookings and permanently delete your account.",
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text("Cancel"),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text("Delete"),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirm != true) return;
+
+                    await cleanupUserBookings(userId);
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userId)
+                        .delete();
+                    await FirebaseAuth.instance.currentUser!.delete();
+
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (_) => false,
+                    );
+                  },
+                  icon: const Icon(Icons.delete_forever),
+                  label: const Text("Delete Account"),
+                ),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _statTile(String title, dynamic value) {
-    return Card(
+  /// Score Card
+  Widget _scoreCard(
+    String title,
+    dynamic value,
+    IconData icon,
+    BuildContext context,
+  ) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: ListTile(
-        title: Text(title),
-        trailing: Text(value?.toString() ?? "0"),
+        leading: CircleAvatar(
+          backgroundColor: const Color(0xFF2ECC71),
+          child: Icon(icon, color: Colors.white),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        trailing: Text(
+          value?.toString() ?? "NA",
+          style: const TextStyle(fontSize: 16),
+        ),
       ),
     );
   }
