@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'play_screen.dart';
 import 'book_screen.dart';
 import 'profile_screen.dart';
+import 'booking_requests.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
+
     );
   }
 }

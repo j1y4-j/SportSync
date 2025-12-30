@@ -27,8 +27,8 @@ class MyBookingsScreen extends StatelessWidget {
             );
           }
 
-          // Filter slots booked by current user
           final allSlots = snapshot.data!.docs;
+
           final userSlots = allSlots.where((slot) {
             final data = slot.data() as Map<String, dynamic>;
             final bookedUsers = List.from(data['bookedBy'] ?? []);
@@ -48,6 +48,7 @@ class MyBookingsScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final slot = userSlots[index];
               final data = slot.data() as Map<String, dynamic>;
+
               final bookedUsers = List.from(data['bookedBy'] ?? []);
               bookedUsers.removeWhere((uid) => uid == null || uid == '');
 
@@ -84,11 +85,11 @@ class MyBookingsScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: getStatusColor(data['status']).withOpacity(0.9),
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                           color: Colors.black26,
                           blurRadius: 4,
-                          offset: const Offset(0, 3),
+                          offset: Offset(0, 3),
                         ),
                       ],
                     ),
@@ -101,7 +102,7 @@ class MyBookingsScreen extends StatelessWidget {
                         ),
                       ),
                       subtitle: Text(
-                        "${data['startTime']} - ${data['endTime']} | ${data['status']} (${bookedUsers.length}/4)",
+                        "${data['startTime']} - ${data['endTime']} | ${data['status']} (${bookedUsers.length})",
                         style: const TextStyle(color: Colors.white70),
                       ),
                       trailing: IconButton(
@@ -112,7 +113,7 @@ class MyBookingsScreen extends StatelessWidget {
                             builder: (context) => AlertDialog(
                               title: const Text("Cancel Booking"),
                               content: Text(
-                                "Do you want to cancel this booking for $courtName, ${data['startTime']} - ${data['endTime']}?",
+                                "Cancel booking for $courtName, ${data['startTime']} - ${data['endTime']}?",
                               ),
                               actions: [
                                 TextButton(
@@ -132,24 +133,10 @@ class MyBookingsScreen extends StatelessWidget {
 
                           bookedUsers.remove(userId);
 
-                          String newStatus;
-                          if (bookedUsers.isEmpty) {
-                            newStatus = 'free';
-                          } else {
-                            newStatus = 'booked';
-                          }
-
                           await slot.reference.update({
                             'bookedBy': bookedUsers,
-                            'status': newStatus,
+                            'status': bookedUsers.isEmpty ? 'free' : 'booked',
                           });
-
-                          await FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(userId)
-                              .update({
-                                'totalBookings': FieldValue.increment(-1),
-                              });
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text("Booking cancelled")),

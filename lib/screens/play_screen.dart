@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/slot_card.dart';
+import 'booking_requests.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -18,7 +19,24 @@ class _PlayScreenState extends State<PlayScreen> {
     final primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Play"), elevation: 2),
+      appBar: AppBar(
+        title: const Text("Play"),
+        elevation: 2,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const BookingRequestsScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+
       body: Column(
         children: [
           // ---------------- COURTS LIST ----------------
