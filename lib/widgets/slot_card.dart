@@ -161,7 +161,7 @@ class _SlotCardState extends State<SlotCard>
           .collection('slots')
           .doc(widget.slotId);
 
-      // 1️⃣ READ SLOT (outside transaction)
+      // 1️⃣ READ SLOT DATA
       final slotSnap = await slotRef.get();
       if (!slotSnap.exists) throw "Slot not found";
 
@@ -189,12 +189,13 @@ class _SlotCardState extends State<SlotCard>
         throw "Slot is full";
       }
 
-      // 3️⃣ ASK FRIENDS (UI)
+      // 3️⃣ ASK FRIENDS ONLY IF MORE THAN 1 SLOT AVAILABLE
       List<String> invitedUserIds = [];
       final remainingSlots = maxPlayers - (bookedBy.length + 1);
 
+      bool withFriends = false;
       if (remainingSlots > 0) {
-        final withFriends =
+        withFriends =
             await showDialog<bool>(
               context: context,
               builder: (_) => AlertDialog(
@@ -215,33 +216,37 @@ class _SlotCardState extends State<SlotCard>
               ),
             ) ??
             false;
+      }
 
-        if (withFriends) {
-          final rolls = await _enterFriends(remainingSlots);
+      if (withFriends) {
+        final rolls = await _enterFriends(remainingSlots);
 
-          for (final roll in rolls) {
-            final userSnap = await db
-                .collection('users')
-                .where('rollNumber', isEqualTo: roll)
-                .limit(1)
-                .get();
+        for (final roll in rolls) {
+          final userSnap = await db
+              .collection('users')
+              .where('rollNumber', isEqualTo: roll)
+              .limit(1)
+              .get();
 
-            if (userSnap.docs.isNotEmpty) {
-              invitedUserIds.add(userSnap.docs.first.id);
-            }
+          if (userSnap.docs.isNotEmpty) {
+            invitedUserIds.add(userSnap.docs.first.id);
           }
         }
       }
 
-      // 4️⃣ NOW TRANSACTION (NO UI INSIDE)
+      // 4️⃣ TRANSACTION → UPDATE SLOT SAFELY
       await db.runTransaction((tx) async {
         final freshSnap = await tx.get(slotRef);
         final freshData = freshSnap.data()!;
-
         List<dynamic> freshBooked = List.from(freshData['bookedBy'] ?? []);
+        freshBooked.removeWhere((e) => e == null || e == '');
 
-        if (freshBooked.length >= maxPlayers) {
-          throw "Slot just got full";
+        if (freshBooked.contains(currentUserId)) {
+          throw "You already booked this slot";
+        }
+
+        if (freshBooked.length + 1 + invitedUserIds.length > maxPlayers) {
+          throw "Not enough slots available";
         }
 
         freshBooked.add(currentUserId);
@@ -254,6 +259,7 @@ class _SlotCardState extends State<SlotCard>
           'invitedUsers': FieldValue.arrayUnion(invitedUserIds),
         });
 
+        // 5️⃣ CREATE BOOKING REQUESTS FOR FRIENDS ONLY
         for (final uid in invitedUserIds) {
           final reqRef = db.collection('bookingRequests').doc();
           tx.set(reqRef, {
@@ -265,6 +271,11 @@ class _SlotCardState extends State<SlotCard>
             'createdAt': FieldValue.serverTimestamp(),
           });
         }
+      });
+
+      // 6️⃣ INCREMENT TOTAL BOOKINGS FOR CURRENT USER
+      await db.collection('users').doc(currentUserId).update({
+        'totalBookings': FieldValue.increment(1),
       });
 
       ScaffoldMessenger.of(

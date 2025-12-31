@@ -131,12 +131,30 @@ class MyBookingsScreen extends StatelessWidget {
 
                           if (confirm != true) return;
 
+                          final wasBookedByUser = bookedUsers.contains(userId);
+
                           bookedUsers.remove(userId);
 
+                          // Determine new status
+                          String newStatus = bookedUsers.isEmpty
+                              ? 'free'
+                              : 'booked';
+
+                          // Update slot in Firestore
                           await slot.reference.update({
                             'bookedBy': bookedUsers,
-                            'status': bookedUsers.isEmpty ? 'free' : 'booked',
+                            'status': newStatus,
                           });
+
+                          // Decrement totalBookings only if user actually had a booking
+                          if (wasBookedByUser) {
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(userId)
+                                .update({
+                                  'totalBookings': FieldValue.increment(-1),
+                                });
+                          }
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text("Booking cancelled")),
