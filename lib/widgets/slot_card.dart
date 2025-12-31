@@ -69,38 +69,89 @@ class _SlotCardState extends State<SlotCard>
   Future<Map<String, dynamic>?> _selectMatchType() {
     return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
+      isScrollControlled: true, // ✅ allows bigger height
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 16),
-          const Text(
-            "Choose Match Type",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.4, // 🔥 40% screen
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+
+              const Text(
+                "Choose Match Type",
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Singles card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ListTile(
+                  leading: const Icon(Icons.person, size: 36),
+                  title: const Text(
+                    "Singles",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: const Text("Max 2 players"),
+                  onTap: () => Navigator.pop(context, {
+                    'matchType': 'singles',
+                    'maxPlayers': 2,
+                  }),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Doubles card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ListTile(
+                  leading: const Icon(Icons.group, size: 36),
+                  title: const Text(
+                    "Doubles",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: const Text("Max 4 players"),
+                  onTap: () => Navigator.pop(context, {
+                    'matchType': 'doubles',
+                    'maxPlayers': 4,
+                  }),
+                ),
+              ),
+
+              const Spacer(),
+
+              Text(
+                "Tip: Singles = you + 1 friend\nDoubles = you + up to 3 friends",
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text("Singles"),
-            subtitle: const Text("Max 2 players"),
-            onTap: () => Navigator.pop(context, {
-              'matchType': 'singles',
-              'maxPlayers': 2,
-            }),
-          ),
-          ListTile(
-            leading: const Icon(Icons.group),
-            title: const Text("Doubles"),
-            subtitle: const Text("Max 4 players"),
-            onTap: () => Navigator.pop(context, {
-              'matchType': 'doubles',
-              'maxPlayers': 4,
-            }),
-          ),
-          const SizedBox(height: 12),
-        ],
-      ),
+        );
+      },
     );
   }
 
