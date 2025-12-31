@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'play_screen.dart';
 import 'book_screen.dart';
 import 'profile_screen.dart';
-import 'booking_requests.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -42,7 +43,15 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
-
     );
   }
+}
+
+Stream<int> pendingBookingRequestsCount(String userId) {
+  return FirebaseFirestore.instance
+      .collection('bookingRequests')
+      .where('to', isEqualTo: userId)
+      .where('status', isEqualTo: 'pending')
+      .snapshots()
+      .map((snapshot) => snapshot.docs.length);
 }

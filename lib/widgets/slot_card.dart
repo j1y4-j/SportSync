@@ -233,6 +233,8 @@ class _SlotCardState extends State<SlotCard>
           }
         }
       }
+      final senderSnap = await db.collection('users').doc(currentUserId).get();
+      final senderRoll = senderSnap.data()?['rollNumber'] ?? 'Unknown';
 
       // 4️⃣ TRANSACTION → UPDATE SLOT SAFELY
       await db.runTransaction((tx) async {
@@ -266,6 +268,7 @@ class _SlotCardState extends State<SlotCard>
             'slotId': widget.slotId,
             'courtId': widget.courtId,
             'from': currentUserId,
+            'fromRoll': senderRoll, // ✅ THIS IS KEY
             'to': uid,
             'status': 'pending',
             'createdAt': FieldValue.serverTimestamp(),

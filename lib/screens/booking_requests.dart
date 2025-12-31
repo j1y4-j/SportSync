@@ -33,11 +33,18 @@ class BookingRequestsScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final req = requests[index];
 
+              final senderRoll = req.data().toString().contains('fromRoll')
+                  ? req['fromRoll']
+                  : 'Unknown';
+
               return Card(
                 margin: const EdgeInsets.all(12),
                 child: ListTile(
-                  title: const Text("Booking Invite"),
-                  subtitle: Text("Court: ${req['courtId']}"),
+                  title: Text(
+                    "Invite from $senderRoll",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text("Court ID: ${req['courtId']}"),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -64,34 +71,57 @@ class BookingRequestsScreen extends StatelessWidget {
     QueryDocumentSnapshot req, {
     required bool accept,
   }) async {
+    if (req['status'] != 'pending') return;
+
     final db = FirebaseFirestore.instance;
+    final toUserId = req['to'];
+
     final slotRef = db
         .collection('courts')
         .doc(req['courtId'])
         .collection('slots')
         .doc(req['slotId']);
 
+    final userRef = db.collection('users').doc(toUserId);
+
     await db.runTransaction((tx) async {
       final slotSnap = await tx.get(slotRef);
-      if (!slotSnap.exists) return;
+      if (!slotSnap.exists) {
+        throw Exception("Slot not found");
+      }
 
       final data = slotSnap.data()!;
-      List bookedBy = List.from(data['bookedBy'] ?? []);
-      List invited = List.from(data['invitedUsers'] ?? []);
-      final maxPlayers = data['maxPlayers'] ?? 4;
+      List<dynamic> bookedBy = List.from(data['bookedBy'] ?? []);
+      List<dynamic> invited = List.from(data['invitedUsers'] ?? []);
+      final int maxPlayers = data['maxPlayers'] ?? 4;
 
       if (accept) {
+        if (bookedBy.contains(toUserId)) {
+          throw Exception("Already booked");
+        }
+
         if (bookedBy.length >= maxPlayers) {
           throw Exception("Slot full");
         }
-        bookedBy.add(req['to']);
+
+        bookedBy.add(toUserId);
+
+        // ✅ Increment totalBookings ONLY on accept
+        tx.update(userRef, {'totalBookings': FieldValue.increment(1)});
       }
 
-      invited.remove(req['to']);
+      invited.remove(toUserId);
 
-      tx.update(slotRef, {'bookedBy': bookedBy, 'invitedUsers': invited});
+      tx.update(slotRef, {
+        'bookedBy': bookedBy,
+        'invitedUsers': invited,
+        'status': bookedBy.isEmpty ? 'free' : 'booked',
+      });
 
-      tx.update(req.reference, {'status': accept ? 'accepted' : 'rejected'});
+      tx.update(req.reference, {
+        'status': accept ? 'accepted' : 'rejected',
+        'respondedAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 }
