@@ -67,4 +67,96 @@ All interactions update instantly using Firebase, ensuring fairness, consistency
 ---
 
 ## Project Structure
+lib/
+├── screens/
+│ ├── home_screen.dart
+│ ├── play_screen.dart
+│ ├── book_screen.dart
+│ ├── rentscreen.dart
+│ ├── rentequip.dart
+│ ├── add_equipment.dart
+│ └── profile_screen.dart
+│
+├── widgets/
+│ └── reusable UI components
+│
+└── main.dart
 
+
+---
+
+## Firebase Data Models
+
+### Courts / Slots
+```json
+{
+  "bookedBy": ["uid1", "uid2"],
+  "invitedUsers": ["uid3"],
+  "maxPlayers": 2,
+  "status": "booked"
+}
+```
+---
+
+### Booking Requests
+```{
+  "from": "senderUid",
+  "to": "receiverUid",
+  "courtId": "courtId",
+  "slotId": "slotId",
+  "status": "pending"
+}
+```
+---
+
+### Equipment
+```{
+  "ownerId": "uid",
+  "name": "Badminton Racket",
+  "sport": "Badminton",
+  "pricePerHour": 50,
+  "description": "Good condition",
+  "isAvailable": true
+}
+```
+---
+
+### How to Run the Project
+``` bash
+git clone https://github.com/your-username/SportSync.git
+cd SportSync
+flutter pub get
+flutter run
+```
+---
+
+
+## Firebase setup required:
+
+- Enable Firebase Authentication
+
+- Enable Cloud Firestore
+
+- Add Firebase configuration files
+
+## Innovation Highlights
+
+- Real-time slot conflict prevention using Firestore transactions
+
+- Player invitation-based booking system
+
+- Peer-to-peer equipment sharing economy
+
+- Unified sports ecosystem instead of multiple fragmented apps
+
+## Future Enhancements
+
+- Push notifications
+
+- Rental duration and return tracking
+
+- In-app payments
+
+- Ratings and trust system
+
+- Admin dashboard for courts
