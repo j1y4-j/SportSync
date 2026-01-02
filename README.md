@@ -124,7 +124,7 @@ All interactions update instantly using Firebase, ensuring fairness, consistency
 
 ### How to Run the Project
 ``` bash
-git clone https://github.com/your-username/SportSync.git
+git clone https://github.com/j1y4-j/SportSync.git
 cd SportSync
 flutter pub get
 flutter run
