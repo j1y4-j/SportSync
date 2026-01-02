@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'rent_screen.dart';
 import 'play_screen.dart';
 import 'book_screen.dart';
 import 'profile_screen.dart';
@@ -16,10 +16,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
-    PlayScreen(),
-    MyBookingsScreen(),
-    ProfileScreen(),
+  PlayScreen(),
+  RentScreen(),   
+  MyBookingsScreen(),
+  ProfileScreen(),
   ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +39,9 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Play',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.store),   // 🏸 Rent
+            label: 'Rent',),        
+            BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: 'My Bookings',
           ),
