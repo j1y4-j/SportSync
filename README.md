@@ -156,9 +156,9 @@ flutter run
 
 - Rental duration and return tracking
   
-- Trust Score for Credibility of the user
+- Trust Score for credibility of the user
   
-- In-app Messenger
+- In-app messenger
   
 - In-app payments
 
