@@ -92,9 +92,9 @@ class _PlayScreenState extends State<PlayScreen> {
                   .collection('courts')
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData)
+                if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
-
+                }
                 final courts = snapshot.data!.docs;
 
                 return ListView.builder(
@@ -116,15 +116,31 @@ class _PlayScreenState extends State<PlayScreen> {
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.all(10),
                         padding: const EdgeInsets.all(16),
-                        width: 180,
                         decoration: BoxDecoration(
-                          color: isSelected
-                              ? primaryColor
-                              : Colors.grey.shade200,
+                          color:
+                              Theme.of(context).brightness == Brightness.light
+                              ? (isSelected
+                                    ? const Color.fromARGB(
+                                        255,
+                                        255,
+                                        255,
+                                        255,
+                                      ) // selected = slightly darker grey
+                                    : Colors
+                                          .grey
+                                          .shade100) // unselected = very light grey
+                              : (isSelected
+                                    ? const Color.fromARGB(
+                                        255,
+                                        56,
+                                        56,
+                                        56,
+                                      ) // selected dark
+                                    : Colors.grey.shade800), // unselected dark
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 6,
                               offset: const Offset(0, 3),
                             ),
@@ -136,22 +152,28 @@ class _PlayScreenState extends State<PlayScreen> {
                             Text(
                               data['name'] ?? 'Unnamed Court',
                               textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.black87,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? Colors.black87
+                                    : Colors.white,
                               ),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               data['sport'] ?? '',
                               style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white70
-                                    : Colors.black54,
                                 fontSize: 14,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? Colors.black54
+                                    : Colors.white70,
                               ),
                             ),
                           ],
@@ -185,10 +207,11 @@ class _PlayScreenState extends State<PlayScreen> {
                           .orderBy('startTime')
                           .snapshots(),
                       builder: (context, snapshot) {
-                        if (!snapshot.hasData)
+                        if (!snapshot.hasData) {
                           return const Center(
                             child: CircularProgressIndicator(),
                           );
+                        }
 
                         final slots = snapshot.data!.docs;
 

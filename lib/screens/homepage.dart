@@ -16,18 +16,16 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
-  PlayScreen(),
-  RentScreen(),   
-  MyBookingsScreen(),
-  ProfileScreen(),
+    PlayScreen(),
+    RentScreen(),
+    MyBookingsScreen(),
+    ProfileScreen(),
   ];
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -39,9 +37,10 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Play',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.store),   // 🏸 Rent
-            label: 'Rent',),        
-            BottomNavigationBarItem(
+            icon: Icon(Icons.store), // 🏸 Rent
+            label: 'Rent',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: 'My Bookings',
           ),

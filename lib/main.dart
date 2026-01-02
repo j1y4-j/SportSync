@@ -62,10 +62,10 @@ class MyApp extends StatelessWidget {
           // ---------------- DARK THEME ----------------
           darkTheme: ThemeData(
             brightness: Brightness.dark,
-            primaryColor: const Color(0xFF27AE60),
+            primaryColor: const Color.fromARGB(255, 66, 70, 68),
             scaffoldBackgroundColor: Colors.grey.shade900,
             appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF27AE60),
+              backgroundColor: Color.fromARGB(255, 53, 54, 54),
               foregroundColor: Colors.white,
               centerTitle: true,
               elevation: 2,
@@ -79,7 +79,7 @@ class MyApp extends StatelessWidget {
             ),
             elevatedButtonTheme: ElevatedButtonThemeData(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF27AE60),
+                backgroundColor: const Color.fromARGB(255, 78, 78, 78),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -88,7 +88,7 @@ class MyApp extends StatelessWidget {
             ),
             bottomNavigationBarTheme: BottomNavigationBarThemeData(
               backgroundColor: Colors.grey.shade900,
-              selectedItemColor: const Color(0xFF27AE60),
+              selectedItemColor: const Color.fromARGB(255, 57, 58, 57),
               unselectedItemColor: Colors.grey.shade400,
               type: BottomNavigationBarType.fixed,
             ),
