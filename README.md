@@ -155,7 +155,11 @@ flutter run
 - Push notifications
 
 - Rental duration and return tracking
-
+  
+- Trust Score for Credibility of the user
+  
+- In-app Messenger
+  
 - In-app payments
 
 - Ratings and trust system
