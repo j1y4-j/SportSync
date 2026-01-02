@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'add_equipment_screen.dart' ;
 import '../../widgets/equipment_card.dart';
 import 'rent_requests_screen.dart';
-
+import 'create_rent_request.dart';
 
 
 
@@ -184,15 +184,27 @@ class _RentScreenState extends State<RentScreen> {
                       durationType: data['durationType'],
                       available: data['available'],
                       onRequest: () {
-                        // 🔜 Rent request logic comes next
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content:
-                                Text("Rent request coming next 👀"),
+                        final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
+  
+                        if (data['ownerId'] == currentUserId) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("You own this equipment")),
+                      );  
+                        return;
+          }     
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CreateRentRequestScreen(
+                              equipmentId: equipmentDocs[index].id,
+                              equipmentName: data['title'],
+                              ownerId: data['ownerId'],
+                            ),
                           ),
                         );
                       },
-                    );
+                      );
                   },
                 );
               },
