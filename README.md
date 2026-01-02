@@ -67,7 +67,7 @@ All interactions update instantly using Firebase, ensuring fairness, consistency
 ---
 
 ## Project Structure
-lib/
+``` lib/
 ├── screens/
 │ ├── home_screen.dart
 │ ├── play_screen.dart
@@ -81,6 +81,7 @@ lib/
 │ └── reusable UI components
 │
 └── main.dart
+```
 
 
 ---
