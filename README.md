@@ -164,6 +164,6 @@ flutter run
 
 - Admin dashboard for courts
 
-### Conclusion 
+## Conclusion 
 
 SportSync simplifies sports management by combining real-time court booking and peer-to-peer equipment rental into one seamless platform.
