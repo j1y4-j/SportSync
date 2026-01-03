@@ -5,8 +5,8 @@ import 'add_equipment_screen.dart' ;
 import '../../widgets/equipment_card.dart';
 import 'rent_requests_screen.dart';
 import 'create_rent_request.dart';
-import 'my_requests_screen.dart';
 
+import 'my_rent_requests_screen.dart';
 
 class RentScreen extends StatefulWidget {
   const RentScreen({super.key});
@@ -89,17 +89,17 @@ class _RentScreenState extends State<RentScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.assignment),
-            tooltip: 'My Requests',
+            icon: const Icon(Icons.history),
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => MyRequestsScreen(),
+                  builder: (_) => const MyRentRequestsScreen(),
                 ),
               );
             },
           ),
+
         ],
       ),
 

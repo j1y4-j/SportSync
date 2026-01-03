@@ -4,7 +4,7 @@ import 'rent_screen.dart';
 import 'play_screen.dart';
 import 'book_screen.dart';
 import 'profile_screen.dart';
-
+import 'chats_screen.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -19,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
     PlayScreen(),
     RentScreen(),
     MyBookingsScreen(),
+    ChatsScreen(),
     ProfileScreen(),
   ];
 
@@ -43,6 +44,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: 'My Bookings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat), // 🆕
+            label: 'Chats',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
