@@ -10,10 +10,7 @@ class MyBookingsScreen extends StatelessWidget {
     final userId = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Bookings"),
-        backgroundColor: const Color(0xFF27AE60),
-      ),
+      appBar: AppBar(title: const Text("My Bookings")),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collectionGroup('slots').snapshots(),
         builder: (context, snapshot) {
