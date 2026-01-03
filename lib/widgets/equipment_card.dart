@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EquipmentCard extends StatelessWidget {
   final String equipmentId;
   final String title;
   final String imageUrl;
-  final String ownerName;
+  final String ownerId;
   final int price;
   final String durationType;
   final bool available;
@@ -15,7 +16,7 @@ class EquipmentCard extends StatelessWidget {
     required this.equipmentId,
     required this.title,
     required this.imageUrl,
-    required this.ownerName,
+    required this.ownerId,
     required this.price,
     required this.durationType,
     required this.available,
@@ -25,12 +26,18 @@ class EquipmentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image
+          /// Equipment Image
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(16),
+            ),
             child: Image.network(
               imageUrl,
               height: 130,
@@ -44,6 +51,7 @@ class EquipmentCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                /// Title
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleMedium,
@@ -53,13 +61,39 @@ class EquipmentCard extends StatelessWidget {
 
                 const SizedBox(height: 4),
 
-                Text(
-                  "Owner: $ownerName",
-                  style: Theme.of(context).textTheme.bodySmall,
+                /// Owner Name (fetched from users collection)
+                FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(ownerId)
+                      .get(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Text(
+                        "Owner: ...",
+                        style: TextStyle(fontSize: 12),
+                      );
+                    }
+
+                    final data =
+                        snapshot.data!.data() as Map<String, dynamic>;
+                    final ownerName = data['name'] ?? 'Unknown';
+
+                    return SizedBox(
+                      height: 16, // 🔒 lock vertical height
+                      child: Text(
+                        "Owner: $ownerName",
+                        style: Theme.of(context).textTheme.bodySmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 8),
 
+                /// Price + Availability
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -82,6 +116,7 @@ class EquipmentCard extends StatelessWidget {
 
                 const SizedBox(height: 10),
 
+                /// Request Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

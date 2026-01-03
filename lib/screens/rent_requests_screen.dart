@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'public_profile_screen.dart';
 class RentRequestsScreen extends StatelessWidget {
   const RentRequestsScreen({super.key});
 
@@ -15,37 +15,50 @@ class RentRequestsScreen extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('rent_requests')
             .where('ownerId', isEqualTo: ownerId)
-            .orderBy('createdAt', descending: true)
+            .where('status', isEqualTo: 'pending')
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final docs = snapshot.data!.docs;
+          final requests = snapshot.data!.docs;
 
-          if (docs.isEmpty) {
-            return const Center(child: Text("No rent requests"));
+          if (requests.isEmpty) {
+            return const Center(child: Text("No pending requests"));
           }
 
           return ListView.builder(
-            itemCount: docs.length,
+            itemCount: requests.length,
             itemBuilder: (context, index) {
-              final data = docs[index];
+              final doc = requests[index];
+              final data = doc.data() as Map<String, dynamic>;
+
               return Card(
+                margin: const EdgeInsets.all(12),
                 child: ListTile(
                   title: Text(data['equipmentName']),
                   subtitle: Text("Requested by ${data['renterName']}"),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PublicProfileScreen(
+                          userId: data['renterId'],
+                        ),
+                      ),
+                    );
+                  },
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red),
-                        onPressed: () => _updateStatus(data.id, 'rejected'),
+                        icon: const Icon(Icons.check, color: Colors.green),
+                        onPressed: () => _accept(doc.id, data),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.check, color: Colors.green),
-                        onPressed: () => _acceptRequest(data),
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        onPressed: () => _reject(doc.id),
                       ),
                     ],
                   ),
@@ -58,27 +71,27 @@ class RentRequestsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _updateStatus(String requestId, String status) {
-    return FirebaseFirestore.instance
-        .collection('rent_requests')
-        .doc(requestId)
-        .update({'status': status});
+  static Future<void> _accept(String requestId, Map data) async {
+    final batch = FirebaseFirestore.instance.batch();
+
+    final requestRef =
+        FirebaseFirestore.instance.collection('rent_requests').doc(requestId);
+    final equipmentRef =
+        FirebaseFirestore.instance.collection('equipment').doc(data['equipmentId']);
+
+    batch.update(requestRef, {'status': 'accepted'});
+    batch.update(equipmentRef, {
+      'available': false,
+      'rentedBy': data['renterId'],
+    });
+
+    await batch.commit();
   }
 
-  Future<void> _acceptRequest(QueryDocumentSnapshot request) async {
-    final firestore = FirebaseFirestore.instance;
-
-    // Update request
-    await firestore.collection('rent_requests').doc(request.id).update({
-      'status': 'accepted',
-    });
-
-    // Create chat
-    await firestore.collection('chats').add({
-      'equipmentId': request['equipmentId'],
-      'ownerId': request['ownerId'],
-      'renterId': request['renterId'],
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+  static Future<void> _reject(String requestId) async {
+    await FirebaseFirestore.instance
+        .collection('rent_requests')
+        .doc(requestId)
+        .update({'status': 'rejected'});
   }
 }

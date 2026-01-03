@@ -5,7 +5,7 @@ import 'add_equipment_screen.dart' ;
 import '../../widgets/equipment_card.dart';
 import 'rent_requests_screen.dart';
 import 'create_rent_request.dart';
-
+import 'my_requests_screen.dart';
 
 
 class RentScreen extends StatefulWidget {
@@ -85,6 +85,18 @@ class _RentScreenState extends State<RentScreen> {
                       ),
                     ),
                 ],
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.assignment),
+            tooltip: 'My Requests',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MyRequestsScreen(),
+                ),
               );
             },
           ),
@@ -176,35 +188,36 @@ class _RentScreenState extends State<RentScreen> {
                         equipmentDocs[index].data() as Map<String, dynamic>;
 
                     return EquipmentCard(
-                      equipmentId: equipmentDocs[index].id,
-                      title: data['title'],
-                      imageUrl: data['imageUrl'],
-                      ownerName: data['ownerName'],
-                      price: data['price'],
-                      durationType: data['durationType'],
-                      available: data['available'],
-                      onRequest: () {
-                        final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+                        equipmentId: equipmentDocs[index].id,
+                        title: data['title'],
+                        imageUrl: data['imageUrl'],
+                        ownerId: data['ownerId'],
+                        price: data['price'],
+                        durationType: data['durationType'],
+                        available: data['available'],
+                        onRequest: () {
+                          final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
-  
-                        if (data['ownerId'] == currentUserId) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("You own this equipment")),
-                      );  
-                        return;
-          }     
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CreateRentRequestScreen(
-                              equipmentId: equipmentDocs[index].id,
-                              equipmentName: data['title'],
-                              ownerId: data['ownerId'],
+                          if (data['ownerId'] == currentUserId) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("You own this equipment")),
+                            );
+                            return;
+                          }
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CreateRentRequestScreen(
+                                equipmentId: equipmentDocs[index].id,
+                                equipmentName: data['title'],
+                                ownerId: data['ownerId'],
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
                       );
+
                   },
                 );
               },

@@ -17,15 +17,21 @@ class CreateRentRequestScreen extends StatelessWidget {
   Future<void> _sendRequest(BuildContext context) async {
     final user = FirebaseAuth.instance.currentUser!;
 
-    await FirebaseFirestore.instance.collection('rent_requests').add({
-      'equipmentId': equipmentId,
-      'equipmentName': equipmentName,
-      'ownerId': ownerId,
-      'renterId': user.uid,
-      'renterName': user.displayName ?? 'User',
-      'status': 'pending',
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+    final userDoc = await FirebaseFirestore.instance
+    .collection('users')
+    .doc(user.uid)
+    .get();
+
+await FirebaseFirestore.instance.collection('rent_requests').add({
+  'equipmentId': equipmentId,
+  'equipmentName': equipmentName,
+  'ownerId': ownerId,
+  'renterId': user.uid,
+  'renterName': userDoc.data()?['name'] ?? 'Unknown',
+  'status': 'pending',
+  'createdAt': FieldValue.serverTimestamp(),
+});
+
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Rent request sent')),
@@ -47,3 +53,7 @@ class CreateRentRequestScreen extends StatelessWidget {
     );
   }
 }
+
+
+
+
