@@ -60,7 +60,8 @@ class RentRequestsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTrailingWidget(BuildContext context, String docId, Map<String, dynamic> data) {
+  Widget _buildTrailingWidget(
+      BuildContext context, String docId, Map<String, dynamic> data) {
     if (data['status'] == 'pending') {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -73,9 +74,9 @@ class RentRequestsScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Accepting request...')),
                 );
-                
+
                 await _accept(docId, data);
-                
+
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -107,7 +108,7 @@ class RentRequestsScreen extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.chat, color: Colors.blue),
+            icon: const Icon(Icons.chat, color: Color(0xFF2ECC71)),
             tooltip: 'Open Chat',
             onPressed: () {
               if (data['chatId'] != null) {
@@ -148,14 +149,14 @@ class RentRequestsScreen extends StatelessWidget {
     }
   }
 
-  static void _showCancelDialog(BuildContext context, String requestId, Map data) {
+  static void _showCancelDialog(
+      BuildContext context, String requestId, Map data) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text("Cancel Rent"),
         content: Text(
-          "Are you sure you want to cancel the rent for '${data['equipmentName']}'? This will make the equipment available again."
-        ),
+            "Are you sure you want to cancel the rent for '${data['equipmentName']}'? This will make the equipment available again."),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -183,7 +184,8 @@ class RentRequestsScreen extends StatelessWidget {
     final chatId = firestore.collection('chats').doc().id;
 
     final requestRef = firestore.collection('rent_requests').doc(requestId);
-    final equipmentRef = firestore.collection('equipment').doc(data['equipmentId']);
+    final equipmentRef =
+        firestore.collection('equipment').doc(data['equipmentId']);
     final chatRef = firestore.collection('chats').doc(chatId);
 
     batch.update(requestRef, {
@@ -210,10 +212,10 @@ class RentRequestsScreen extends StatelessWidget {
     });
 
     await batch.commit();
-    
+
     // Debug: Print to console
     print('Chat created with ID: $chatId');
-    
+
     return chatId;
   }
 
@@ -229,7 +231,8 @@ class RentRequestsScreen extends StatelessWidget {
     final batch = firestore.batch();
 
     final requestRef = firestore.collection('rent_requests').doc(requestId);
-    final equipmentRef = firestore.collection('equipment').doc(data['equipmentId']);
+    final equipmentRef =
+        firestore.collection('equipment').doc(data['equipmentId']);
 
     // Update request status to cancelled
     batch.update(requestRef, {

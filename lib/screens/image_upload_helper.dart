@@ -1,11 +1,15 @@
-import 'dart:io';
+import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 
 class ImageUploadHelper {
   static final ImagePicker _picker = ImagePicker();
+
+  // Replace these with your Cloudinary credentials
+  static const String cloudName = 'dhjhblduo';
+  static const String uploadPreset = 'equipment_images';
 
   /// Shows dialog to choose between camera or gallery
   static Future<String?> uploadImage(BuildContext context) async {
@@ -16,14 +20,15 @@ class ImageUploadHelper {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
+            if (!kIsWeb) // Camera only available on mobile
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Camera'),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
+              title: Text(kIsWeb ? 'Choose Image' : 'Gallery'),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
           ],
@@ -55,16 +60,9 @@ class ImageUploadHelper {
         );
       }
 
-      // Upload to Firebase Storage
-      final userId = FirebaseAuth.instance.currentUser!.uid;
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('equipment_images')
-          .child('$userId\_$timestamp.jpg');
-
-      await ref.putFile(File(image.path));
-      final downloadUrl = await ref.getDownloadURL();
+      // Upload to Cloudinary - read as bytes (works on web and mobile)
+      final bytes = await image.readAsBytes();
+      final downloadUrl = await _uploadToCloudinary(bytes, image.name);
 
       // Close loading dialog
       if (context.mounted) {
@@ -76,7 +74,7 @@ class ImageUploadHelper {
       // Close loading dialog if open
       if (context.mounted) {
         Navigator.pop(context);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Upload failed: $e'),
@@ -84,6 +82,44 @@ class ImageUploadHelper {
           ),
         );
       }
+      return null;
+    }
+  }
+
+  /// Upload image bytes to Cloudinary
+  static Future<String?> _uploadToCloudinary(
+      List<int> bytes, String filename) async {
+    try {
+      final url =
+          Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+
+      var request = http.MultipartRequest('POST', url);
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          bytes,
+          filename: filename,
+        ),
+      );
+
+      request.fields['upload_preset'] = uploadPreset;
+      request.fields['folder'] = 'equipment_images';
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        final responseData = await response.stream.toBytes();
+        final responseString = String.fromCharCodes(responseData);
+        final jsonMap = jsonDecode(responseString);
+
+        return jsonMap['secure_url'];
+      } else {
+        print('Cloudinary upload failed: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error uploading to Cloudinary: $e');
       return null;
     }
   }
@@ -167,4 +203,3 @@ class ImageUploadHelper {
     );
   }
 }
-

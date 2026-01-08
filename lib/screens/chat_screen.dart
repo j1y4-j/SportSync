@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class ChatScreen extends StatelessWidget {
   final String chatId;
 
@@ -32,8 +31,7 @@ class ChatScreen extends StatelessWidget {
 
                 return ListView(
                   children: messages.map((doc) {
-                    final data =
-                        doc.data() as Map<String, dynamic>;
+                    final data = doc.data() as Map<String, dynamic>;
                     final isMe = data['senderId'] == userId;
 
                     return Align(
@@ -57,34 +55,56 @@ class ChatScreen extends StatelessWidget {
             ),
           ),
 
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  decoration:
-                      const InputDecoration(hintText: "Message"),
-                ),
+          // Add SafeArea wrapper here
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: TextField(
+                        controller: controller,
+                        decoration: const InputDecoration(
+                          hintText: "Message",
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  CircleAvatar(
+                    backgroundColor: Colors.green,
+                    child: IconButton(
+                      icon: const Icon(Icons.send, color: Colors.white),
+                      onPressed: () async {
+                        if (controller.text.trim().isEmpty) return;
+
+                        await FirebaseFirestore.instance
+                            .collection('chats')
+                            .doc(chatId)
+                            .collection('messages')
+                            .add({
+                          'senderId': userId,
+                          'text': controller.text.trim(),
+                          'createdAt': FieldValue.serverTimestamp(),
+                        });
+
+                        controller.clear();
+                      },
+                    ),
+                  )
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.send),
-                onPressed: () async {
-                  if (controller.text.trim().isEmpty) return;
-
-                  await FirebaseFirestore.instance
-                      .collection('chats')
-                      .doc(chatId)
-                      .collection('messages')
-                      .add({
-                    'senderId': userId,
-                    'text': controller.text.trim(),
-                    'createdAt': FieldValue.serverTimestamp(),
-                  });
-
-                  controller.clear();
-                },
-              )
-            ],
+            ),
           ),
         ],
       ),
