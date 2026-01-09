@@ -33,7 +33,17 @@ migrate_working_dir/
 /build/
 /coverage/
 
-serviceAccountKey.json
+secret.json
+
+# Web related
+.web_assets/
+build/web/
+
+# Firebase related
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
 
 # Symbolication related
 app.*.symbols

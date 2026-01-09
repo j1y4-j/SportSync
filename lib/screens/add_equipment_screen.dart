@@ -47,11 +47,22 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
 
   final ImagePicker _picker = ImagePicker();
   Future<void> testGeminiAPI() async {
+    const String apiKey = String.fromEnvironment('GEMINI_API_KEY');
+
+    if (apiKey.isEmpty || apiKey == 'NOT_FOUND') {
+      print(
+          '❌ Error: API Key not found. Did you use --dart-define-from-file=secret.json?');
+      return;
+    }
+
     try {
       final response = await http.post(
         Uri.parse(
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=***REMOVED***'),
-        headers: {'Content-Type': 'application/json'},
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
         body: jsonEncode({
           'contents': [
             {
@@ -64,7 +75,11 @@ class _AddEquipmentScreenState extends State<AddEquipmentScreen> {
       );
 
       print('Status: ${response.statusCode}');
-      print('Response: ${response.body}');
+      if (response.statusCode == 200) {
+        print('✅ Success: ${response.body}');
+      } else {
+        print('❌ Failed: ${response.body}');
+      }
     } catch (e) {
       print('Error: $e');
     }
