@@ -21,7 +21,8 @@ SportSync provides a single platform where users can:
 - Book sports courts in real time  
 - Invite players and manage booking requests  
 - Rent sports equipment from other users  
-- List personal equipment for rent  
+- List personal equipment for rent
+- AI analysis of equipment and condition assessment
 
 All interactions update instantly using Firebase, ensuring fairness, consistency, and transparency.
 
@@ -48,6 +49,7 @@ All interactions update instantly using Firebase, ensuring fairness, consistency
 ### Put Equipment for Rent
 - List personal equipment with price and details
 - Manage equipment availability
+- AI analyses the condition of the equipment 
 
 ### UI / UX
 - Clean and consistent design
@@ -76,6 +78,7 @@ All interactions update instantly using Firebase, ensuring fairness, consistency
 │ ├── rentequip.dart
 │ ├── add_equipment.dart
 │ └── profile_screen.dart
+│ └── chat_screen.dart
 │
 ├── widgets/
 │ └── reusable UI components
@@ -163,6 +166,8 @@ flutter run
 - Ratings and trust system
 
 - Admin dashboard for courts
+
+- Authenticated entry at the courts
 
 ## Conclusion 
 
